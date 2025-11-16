@@ -156,3 +156,25 @@ components:
 
 
 
+## API Rate Limiting
+
+Authenticated endpoints are limited to **60 requests per minute per IP address** using Laravel's built-in throttle middleware.
+
+## Caching Strategy
+
+This prototype does not use caching. In production:
+- Product data would be cached using Redis (`Cache::remember('product_'.$id, 3600, ...)`).
+- Low-stock alert timestamps would be cached to prevent duplicate notifications.
+- Cache would be cleared automatically via model events on product update/delete.
+
+## Database Sharding Strategy
+
+While not implemented, the system is designed to support horizontal scaling:
+- Orders and inventory can be sharded by `customer_id` using hash-based routing (`customer_id % N`).
+- A central database would retain global entities (users, roles, product catalog).
+- Laravel's dynamic database connections would route queries based on authenticated user context.
+
+## Postman Collection
+
+A ready-to-use Postman collection is included in the `postman/` directory.  
+Import `postman/BT-Foundation-Order.postman_collection.json` into Postman to test all API endpoints.

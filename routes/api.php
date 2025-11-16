@@ -12,15 +12,13 @@ Route::prefix('v1')->group(function () {
     Route::post('auth/refresh', [AuthController::class, 'refresh']);
     Route::post('auth/logout', [AuthController::class, 'logout'])->middleware('auth:api');
 
-    Route::get('/docs', function () {
-        return redirect('/api/documentation');
-    });
+    Route::get('/docs', fn() => redirect('/api/documentation'));
 
     Route::get('products', [ProductController::class, 'index']);
     Route::get('products/{id}', [ProductController::class, 'show']);
     Route::get('products/search', [ProductController::class, 'search']);
 
-    Route::middleware('auth:api')->group(function () {
+    Route::middleware(['auth:api', 'throttle:60,1'])->group(function () {
         Route::post('products', [ProductController::class, 'store']);
         Route::put('products/{id}', [ProductController::class, 'update']);
         Route::delete('products/{id}', [ProductController::class, 'destroy']);
