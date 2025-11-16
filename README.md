@@ -1,5 +1,11 @@
 # Order Management System — Laravel 10
 
+
+---
+**Developer**: MD RAJEB CHOWDHURY 
+**Email**: rajebraju@gmail.com
+**GitHub**: https://github.com/rajebraju/bt-foundation-order-api
+
 ## Overview
 This is an Order Management System (E-Commerce) built with Laravel 10 and MySQL. Features:
 - Product & Variant management
