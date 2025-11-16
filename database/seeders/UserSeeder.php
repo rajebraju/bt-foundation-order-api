@@ -5,6 +5,7 @@ namespace Database\Seeders;
 use Illuminate\Database\Seeder;
 use App\Models\User;
 use Spatie\Permission\Models\Role;
+use Illuminate\Support\Facades\Hash;
 
 class UserSeeder extends Seeder
 {
@@ -14,25 +15,31 @@ class UserSeeder extends Seeder
         Role::firstOrCreate(['name' => 'vendor']);
         Role::firstOrCreate(['name' => 'customer']);
 
-        $admin = User::factory()->create([
-            'name' => 'Admin User',
-            'email' => 'admin@email.com',
-            'password' => bcrypt('password'),
-        ]);
+        $admin = User::updateOrCreate(
+            ['email' => 'admin@example.com'],
+            [
+                'name' => 'Admin User',
+                'password' => Hash::make('password'),
+            ]
+        );
         $admin->assignRole('admin');
 
-        $vendor = User::factory()->create([
-            'name' => 'Vendor User',
-            'email' => 'vendor@email.com',
-            'password' => bcrypt('password'),
-        ]);
+        $vendor = User::updateOrCreate(
+            ['email' => 'vendor@example.com'],
+            [
+                'name' => 'Vendor User',
+                'password' => Hash::make('password'),
+            ]
+        );
         $vendor->assignRole('vendor');
 
-        $customer = User::factory()->create([
-            'name' => 'Customer User',
-            'email' => 'customer@email.com',
-            'password' => bcrypt('password'),
-        ]);
+        $customer = User::updateOrCreate(
+            ['email' => 'customer@example.com'],
+            [
+                'name' => 'Customer User',
+                'password' => Hash::make('password'),
+            ]
+        );
         $customer->assignRole('customer');
     }
 }

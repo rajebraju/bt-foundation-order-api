@@ -2,18 +2,14 @@
 
 namespace App\Models;
 
-use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Spatie\Permission\Traits\HasRoles;
 use Laravel\Sanctum\HasApiTokens;
+use Tymon\JWTAuth\Contracts\JWTSubject;
 
-/**
- * @method bool hasRole(string|array|\Spatie\Permission\Models\Role $roles, string|null $guard = null)
- * @method \Illuminate\Database\Eloquent\Relations\HasMany orders()
- */
-class User extends Authenticatable
+class User extends Authenticatable implements JWTSubject
 {
     use HasApiTokens, HasFactory, Notifiable, HasRoles;
 
@@ -35,5 +31,16 @@ class User extends Authenticatable
     public function orders()
     {
         return $this->hasMany(\App\Models\Order::class, 'customer_id');
+    }
+
+    /** JWT METHODS */
+    public function getJWTIdentifier()
+    {
+        return $this->getKey();
+    }
+
+    public function getJWTCustomClaims()
+    {
+        return [];
     }
 }
