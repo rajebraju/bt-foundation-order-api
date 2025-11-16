@@ -15,7 +15,51 @@
             "body": {
               "mode": "raw",
               "raw": "{\n  \"email\": \"admin@email.com\",\n  \"password\": \"password\"\n}",
-              "options": { "raw": { "language": "json" } }
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "http://localhost:8000/api/v1/auth/login",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "8000",
+              "path": ["api", "v1", "auth", "login"]
+            }
+          }
+        },
+        {
+          "name": "Login (Vendor)",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"vendor@email.com\",\n  \"password\": \"password\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": "http://localhost:8000/api/v1/auth/login"
+          }
+        },
+        {
+          "name": "Login (Customer)",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"customer@email.com\",\n  \"password\": \"password\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
             },
             "url": "http://localhost:8000/api/v1/auth/login"
           }
@@ -23,7 +67,7 @@
       ]
     },
     {
-      "name": "Products",
+      "name": "Products (Public)",
       "item": [
         {
           "name": "Get All Products",
@@ -44,12 +88,30 @@
               "host": ["localhost"],
               "port": "8000",
               "path": ["api", "v1", "products", "search"],
-              "query": [{ "key": "q", "value": "laptop" }]
+              "query": [
+                {
+                  "key": "q",
+                  "value": "laptop"
+                }
+              ]
             }
           }
         },
         {
-          "name": "Create Product (Auth Required)",
+          "name": "Get Product by ID",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "http://localhost:8000/api/v1/products/1"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Products (Authenticated)",
+      "item": [
+        {
+          "name": "Create Product (Vendor)",
           "request": {
             "method": "POST",
             "header": [
@@ -58,9 +120,34 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"sku\": \"PROD-001\",\n  \"name\": \"Test Product\",\n  \"base_price\": 100,\n  \"variants\": [\n    {\n      \"sku\": \"VAR-001\",\n      \"title\": \"Red\",\n      \"price\": 110,\n      \"stock\": 10\n    }\n  ]\n}"
+              "raw": "{\n  \"sku\": \"PROD-001\",\n  \"name\": \"Wireless Mouse\",\n  \"base_price\": 25.99,\n  \"description\": \"Ergonomic wireless mouse\",\n  \"variants\": [\n    {\n      \"sku\": \"MOUSE-RED\",\n      \"title\": \"Red\",\n      \"price\": 27.99,\n      \"stock\": 50,\n      \"attributes\": { \"color\": \"red\" }\n    }\n  ]\n}"
             },
             "url": "http://localhost:8000/api/v1/products"
+          }
+        },
+        {
+          "name": "Update Product",
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Updated Wireless Mouse\",\n  \"base_price\": 29.99\n}"
+            },
+            "url": "http://localhost:8000/api/v1/products/1"
+          }
+        },
+        {
+          "name": "Delete Product",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": "http://localhost:8000/api/v1/products/1"
           }
         }
       ]
@@ -69,7 +156,7 @@
       "name": "Orders",
       "item": [
         {
-          "name": "Create Order (Auth Required)",
+          "name": "Create Order (Customer)",
           "request": {
             "method": "POST",
             "header": [
@@ -84,10 +171,32 @@
           }
         },
         {
-          "name": "Confirm Order",
+          "name": "List Orders (User)",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": "http://localhost:8000/api/v1/orders"
+          }
+        },
+        {
+          "name": "Get Order Details",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": "http://localhost:8000/api/v1/orders/1"
+          }
+        },
+        {
+          "name": "Confirm Order (Admin/Vendor)",
           "request": {
             "method": "POST",
-            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
             "url": "http://localhost:8000/api/v1/orders/1/confirm"
           }
         },
@@ -95,7 +204,9 @@
           "name": "Cancel Order",
           "request": {
             "method": "POST",
-            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
             "url": "http://localhost:8000/api/v1/orders/1/cancel"
           }
         },
@@ -103,7 +214,9 @@
           "name": "Download Invoice",
           "request": {
             "method": "GET",
-            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
             "url": "http://localhost:8000/api/v1/orders/1/invoice"
           }
         }
@@ -113,21 +226,42 @@
       "name": "Product Import",
       "item": [
         {
-          "name": "Upload CSV (Auth Required)",
+          "name": "Upload CSV (Vendor)",
           "request": {
             "method": "POST",
-            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
             "body": {
               "mode": "formdata",
-              "formdata": [{ "key": "file", "type": "file", "src": "/path/to/products.csv" }]
+              "formdata": [
+                {
+                  "key": "file",
+                  "type": "file",
+                  "src": "/path/to/products.csv"
+                }
+              ]
             },
             "url": "http://localhost:8000/api/v1/products/import"
+          }
+        },
+        {
+          "name": "Check Import Status",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": "http://localhost:8000/api/v1/products/import/1"
           }
         }
       ]
     }
   ],
   "variable": [
-    { "key": "token", "value": "your_jwt_token_here" }
+    {
+      "key": "token",
+      "value": "Paste your JWT access_token here after login"
+    }
   ]
 }
