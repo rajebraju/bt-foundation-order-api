@@ -8,77 +8,16 @@
       "name": "Auth",
       "item": [
         {
-          "name": "Register User",
-          "request": {
-            "method": "POST",
-            "header": [],
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"email\": \"test@example.com\",\n  \"password\": \"password\",\n  \"name\": \"Test User\"\n}",
-              "options": {
-                "raw": {
-                  "language": "json"
-                }
-              }
-            },
-            "url": {
-              "raw": "http://localhost:8000/api/v1/auth/register",
-              "protocol": "http",
-              "host": ["localhost"],
-              "port": "8000",
-              "path": ["api", "v1", "auth", "register"]
-            }
-          }
-        },
-        {
-          "name": "Login User",
+          "name": "Login (Admin)",
           "request": {
             "method": "POST",
             "header": [],
             "body": {
               "mode": "raw",
               "raw": "{\n  \"email\": \"admin@email.com\",\n  \"password\": \"password\"\n}",
-              "options": {
-                "raw": {
-                  "language": "json"
-                }
-              }
+              "options": { "raw": { "language": "json" } }
             },
-            "url": {
-              "raw": "http://localhost:8000/api/v1/auth/login",
-              "protocol": "http",
-              "host": ["localhost"],
-              "port": "8000",
-              "path": ["api", "v1", "auth", "login"]
-            }
-          }
-        },
-        {
-          "name": "Refresh Token",
-          "request": {
-            "method": "POST",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              }
-            ],
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"refresh_token\": \"your_refresh_token_here\"\n}",
-              "options": {
-                "raw": {
-                  "language": "json"
-                }
-              }
-            },
-            "url": {
-              "raw": "http://localhost:8000/api/v1/auth/refresh",
-              "protocol": "http",
-              "host": ["localhost"],
-              "port": "8000",
-              "path": ["api", "v1", "auth", "refresh"]
-            }
+            "url": "http://localhost:8000/api/v1/auth/login"
           }
         }
       ]
@@ -91,13 +30,7 @@
           "request": {
             "method": "GET",
             "header": [],
-            "url": {
-              "raw": "http://localhost:8000/api/v1/products",
-              "protocol": "http",
-              "host": ["localhost"],
-              "port": "8000",
-              "path": ["api", "v1", "products"]
-            }
+            "url": "http://localhost:8000/api/v1/products"
           }
         },
         {
@@ -111,16 +44,90 @@
               "host": ["localhost"],
               "port": "8000",
               "path": ["api", "v1", "products", "search"],
-              "query": [
-                {
-                  "key": "q",
-                  "value": "laptop"
-                }
-              ]
+              "query": [{ "key": "q", "value": "laptop" }]
             }
+          }
+        },
+        {
+          "name": "Create Product (Auth Required)",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"sku\": \"PROD-001\",\n  \"name\": \"Test Product\",\n  \"base_price\": 100,\n  \"variants\": [\n    {\n      \"sku\": \"VAR-001\",\n      \"title\": \"Red\",\n      \"price\": 110,\n      \"stock\": 10\n    }\n  ]\n}"
+            },
+            "url": "http://localhost:8000/api/v1/products"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Orders",
+      "item": [
+        {
+          "name": "Create Order (Auth Required)",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"items\": [\n    {\n      \"variant_id\": 1,\n      \"quantity\": 2\n    }\n  ]\n}"
+            },
+            "url": "http://localhost:8000/api/v1/orders"
+          }
+        },
+        {
+          "name": "Confirm Order",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": "http://localhost:8000/api/v1/orders/1/confirm"
+          }
+        },
+        {
+          "name": "Cancel Order",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": "http://localhost:8000/api/v1/orders/1/cancel"
+          }
+        },
+        {
+          "name": "Download Invoice",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": "http://localhost:8000/api/v1/orders/1/invoice"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Product Import",
+      "item": [
+        {
+          "name": "Upload CSV (Auth Required)",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "body": {
+              "mode": "formdata",
+              "formdata": [{ "key": "file", "type": "file", "src": "/path/to/products.csv" }]
+            },
+            "url": "http://localhost:8000/api/v1/products/import"
           }
         }
       ]
     }
+  ],
+  "variable": [
+    { "key": "token", "value": "your_jwt_token_here" }
   ]
 }
