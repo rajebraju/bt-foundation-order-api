@@ -7,6 +7,7 @@ use Illuminate\Http\Request;
 use App\Services\OrderService;
 use App\Models\Order;
 use Illuminate\Support\Facades\Auth;
+use App\Http\Services\InventoryService;
 
 class OrderController extends Controller
 {
