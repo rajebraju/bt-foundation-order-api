@@ -13,7 +13,7 @@ class ProductTest extends TestCase
     {
         $this->seed(\Database\Seeders\UserSeeder::class);
 
-        $admin = User::where('email','admin@example.com')->first();
+        $admin = User::where('email','admin@email.com')->first();
 
         /** @var \PHPOpenSourceSaver\JWTAuth\JWTGuard $auth */
         $auth = auth('api');
@@ -36,7 +36,7 @@ class ProductTest extends TestCase
     {
         $this->seed(\Database\Seeders\UserSeeder::class);
 
-        $customer = User::where('email','customer@example.com')->first();
+        $customer = User::where('email','customer@email.com')->first();
 
         /** @var \PHPOpenSourceSaver\JWTAuth\JWTGuard $auth */
         $auth = auth('api');

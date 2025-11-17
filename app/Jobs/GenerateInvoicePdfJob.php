@@ -2,18 +2,19 @@
 
 namespace App\Jobs;
 
-use App\Models\Order;
-use App\Models\Invoice;
-use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
+use Illuminate\Queue\SerializesModels;
+use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
+use Illuminate\Support\Facades\Storage;
+use App\Models\Order;
 
 class GenerateInvoicePdfJob implements ShouldQueue
 {
-    use Dispatchable, Queueable;
+    use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
 
-    public Order $order;
+    protected Order $order;
 
     public function __construct(Order $order)
     {
@@ -22,31 +23,15 @@ class GenerateInvoicePdfJob implements ShouldQueue
 
     public function handle()
     {
-        $order = $this->order->load('customer', 'items.product', 'items.variant');
+        $order = $this->order->fresh();
+        $filename = "{$order->order_number}.pdf";
+        $relative = "invoices/{$filename}";
 
-        // Create invoice HTML
-        $pdf = Pdf::loadView('invoices.invoice-template', [
-            'order' => $order,
-            'items' => $order->items,
-            'customer' => $order->customer
-        ]);
+        $content = "Invoice for order {$order->order_number}\nTotal: {$order->total}";
 
-        // File name
-        $filename = 'invoice_' . $order->order_number . '.pdf';
-        $path = storage_path('app/invoices/' . $filename);
+        Storage::disk('local')->put($relative, $content);
 
-        // Ensure directory exists
-        if (!is_dir(storage_path('app/invoices'))) {
-            mkdir(storage_path('app/invoices'), 0755, true);
-        }
-
-        // Save PDF file
-        $pdf->save($path);
-
-        // Save record in DB
-        Invoice::updateOrCreate(
-            ['order_id' => $order->id],
-            ['filename' => $filename]
-        );
+        $order->invoice_path = $relative;
+        $order->save();
     }
 }

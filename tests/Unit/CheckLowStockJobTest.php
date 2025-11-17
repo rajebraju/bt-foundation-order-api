@@ -3,6 +3,7 @@
 namespace Tests\Unit;
 
 use App\Jobs\CheckLowStockJob;
+use App\Jobs\SendLowStockNotificationJob;
 use App\Models\ProductVariant;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Queue;
@@ -21,7 +22,7 @@ class CheckLowStockJobTest extends TestCase
 
         (new CheckLowStockJob())->handle();
 
-        Queue::assertPushed(\App\Jobs\SendLowStockNotificationJob::class, function ($job) {
+        Queue::assertPushed(SendLowStockNotificationJob::class, function ($job) {
             return count($job->variants) === 1 && $job->variants[0]->sku === 'LOW-001';
         });
     }

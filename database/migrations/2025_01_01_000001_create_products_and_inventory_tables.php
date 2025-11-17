@@ -15,7 +15,7 @@ return new class extends Migration {
             $t->text('description')->nullable();
             $t->decimal('base_price', 12, 2);
             $t->boolean('is_active')->default(true);
-            $t->json('metadata')->nullable();
+            $t->json('meta')->nullable();
             $t->timestamps();
 
             $t->index(['name']);

@@ -15,13 +15,10 @@ class CancelOrderTest extends TestCase
     public function test_customer_cannot_cancel_order()
     {
         $this->seed();
-        
         $customer = User::whereEmail('customer@email.com')->first();
-        $order = Order::factory()->for($customer)->create(['status' => 'processing']);
-
+        $order = Order::factory()->create(['customer_id' => $customer->id, 'status' => 'processing']);
         $response = $this->actingAs($customer, 'api')
             ->patchJson("/api/v1/orders/{$order->id}/cancel");
-
         $response->assertStatus(403);
     }
 
@@ -44,6 +41,6 @@ class CancelOrderTest extends TestCase
         $response->assertStatus(200);
 
         $variant->refresh();
-        $this->assertEquals(10, $variant->stock); // 7 used → 3 restored = 10
+        $this->assertEquals(10, $variant->stock);
     }
 }

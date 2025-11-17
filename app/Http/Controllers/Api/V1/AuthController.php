@@ -53,7 +53,6 @@ class AuthController extends Controller
             "password" => Hash::make($request->password),
         ]);
 
-        // Assign role (default: customer)
         $role = $request->role ?? 'customer';
         $user->assignRole($role);
 
@@ -114,7 +113,9 @@ class AuthController extends Controller
             }
 
             $user = Auth::user();
-            $refreshToken = JWTAuth::refresh(JWTAuth::getToken());
+
+            // 🔥 FIX: refresh token must be generated from $token
+            $refreshToken = JWTAuth::refresh($token);
 
             return response()->json([
                 'access_token' => $token,
@@ -123,6 +124,7 @@ class AuthController extends Controller
                 'refresh_token' => $refreshToken,
                 'user' => $user
             ]);
+
         } catch (JWTException $e) {
             return response()->json(['error' => 'Could not create token'], 500);
         }
@@ -170,12 +172,16 @@ class AuthController extends Controller
         ]);
 
         try {
-            $newToken = JWTAuth::refresh(JWTAuth::getToken());
+            // 🔥 FIX: must refresh using the body refresh_token
+            $newToken = JWTAuth::refresh($request->refresh_token);
+
             return response()->json([
                 'access_token' => $newToken,
                 'token_type' => 'bearer',
-                'expires_in' => config('jwt.ttl') * 60
+                'expires_in' => config('jwt.ttl') * 60,
+                'refresh_token' => $newToken,
             ]);
+
         } catch (JWTException $e) {
             return response()->json(['error' => 'Invalid refresh token'], 401);
         }
@@ -193,7 +199,10 @@ class AuthController extends Controller
     )]
     public function logout()
     {
-        auth('api')->logout();
+        try {
+            JWTAuth::invalidate(JWTAuth::getToken());
+        } catch (\Exception $e) {}
+
         return response()->json(['message' => 'Successfully logged out']);
     }
 }

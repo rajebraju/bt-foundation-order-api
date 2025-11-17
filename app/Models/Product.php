@@ -8,8 +8,8 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 class Product extends Model
 {
     use HasFactory;
-    protected $fillable = ['vendor_id', 'sku', 'name', 'description', 'base_price', 'is_active', 'metadata'];
-    protected $casts = ['metadata' => 'array', 'is_active' => 'boolean'];
+    protected $fillable = ['vendor_id', 'sku', 'name', 'description', 'base_price', 'is_active', 'meta'];
+    protected $casts = ['meta' => 'array', 'is_active' => 'boolean'];
 
     public function variants()
     {

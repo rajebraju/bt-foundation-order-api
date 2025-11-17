@@ -484,31 +484,7 @@
                                     },
                                     "variants": {
                                         "type": "array",
-                                        "items": {
-                                            "properties": {
-                                                "sku": {
-                                                    "type": "string",
-                                                    "nullable": true
-                                                },
-                                                "title": {
-                                                    "type": "string",
-                                                    "nullable": true
-                                                },
-                                                "price": {
-                                                    "type": "number",
-                                                    "nullable": true
-                                                },
-                                                "stock": {
-                                                    "type": "integer",
-                                                    "nullable": true
-                                                },
-                                                "attributes": {
-                                                    "type": "object",
-                                                    "nullable": true
-                                                }
-                                            },
-                                            "type": "object"
-                                        },
+                                        "items": {},
                                         "nullable": true
                                     }
                                 },
@@ -575,46 +551,7 @@
                 "requestBody": {
                     "content": {
                         "application/json": {
-                            "schema": {
-                                "properties": {
-                                    "name": {
-                                        "type": "string"
-                                    },
-                                    "base_price": {
-                                        "type": "number"
-                                    },
-                                    "variants": {
-                                        "type": "array",
-                                        "items": {
-                                            "properties": {
-                                                "sku": {
-                                                    "type": "string",
-                                                    "nullable": true
-                                                },
-                                                "title": {
-                                                    "type": "string",
-                                                    "nullable": true
-                                                },
-                                                "price": {
-                                                    "type": "number",
-                                                    "nullable": true
-                                                },
-                                                "stock": {
-                                                    "type": "integer",
-                                                    "nullable": true
-                                                },
-                                                "attributes": {
-                                                    "type": "object",
-                                                    "nullable": true
-                                                }
-                                            },
-                                            "type": "object"
-                                        },
-                                        "nullable": true
-                                    }
-                                },
-                                "type": "object"
-                            }
+                            "schema": {}
                         }
                     }
                 },

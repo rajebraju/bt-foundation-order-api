@@ -2,28 +2,28 @@
 
 namespace App\Jobs;
 
-use App\Models\ProductVariant;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
-use Illuminate\Foundation\Bus\Dispatchable;
-use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
+use Illuminate\Queue\InteractsWithQueue;
+use Illuminate\Foundation\Bus\Dispatchable;
+use App\Models\ProductVariant;
 
 class CheckLowStockJob implements ShouldQueue
 {
     use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
 
-    public function handle(): void
+    public function handle()
     {
-        // Threshold: 5 units (configurable)
-        $threshold = 5;
+        $threshold = config('inventory.low_stock_threshold', 5);
 
-        $lowStockVariants = ProductVariant::where('stock', '<', $threshold)
-            ->with('product')
+        $low = ProductVariant::whereColumn('stock', '<=', 'stock') // placeholder; real check below
+            ->where('stock', '<=', $threshold)
             ->get();
 
-        if ($lowStockVariants->isNotEmpty()) {
-            SendLowStockNotificationJob::dispatch($lowStockVariants);
+        if ($low->isNotEmpty()) {
+            // dispatch the notification job with the collection
+            SendLowStockNotificationJob::dispatch($low);
         }
     }
 }

@@ -16,7 +16,7 @@ class GenerateInvoicePdfJobTest extends TestCase
     {
         Storage::fake('local');
 
-        $order = Order::factory()->create(['total_amount' => 150.00]);
+        $order = Order::factory()->create(['total' => 150.00]);
         $job = new GenerateInvoicePdfJob($order);
 
         $job->handle();

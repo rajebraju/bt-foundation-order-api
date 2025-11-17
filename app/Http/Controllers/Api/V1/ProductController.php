@@ -7,6 +7,7 @@ use Illuminate\Http\Request;
 use App\Repositories\ProductRepositoryInterface;
 use Illuminate\Support\Facades\Auth;
 use OpenApi\Attributes as OA;
+use App\Models\Product;
 
 #[OA\Tag(name: "Products", description: "Product management endpoints")]
 class ProductController extends Controller
@@ -32,6 +33,18 @@ class ProductController extends Controller
     public function index(Request $request)
     {
         $perPage = (int)$request->get('per_page', 15);
+        $user = Auth::user();
+
+        // 🔥 FIX (VendorProductTest): Vendor sees only own products
+        if ($user && $user->hasRole('vendor')) {
+            $products = Product::where('vendor_id', $user->id)
+                ->with('variants.inventory')
+                ->paginate($perPage);
+
+            return response()->json($products);
+        }
+
+        // others use repository
         $res = $this->repo->paginate($perPage);
         return response()->json($res);
     }
@@ -72,15 +85,7 @@ class ProductController extends Controller
                             property: "variants",
                             type: "array",
                             nullable: true,
-                            items: new OA\Items(
-                                properties: [
-                                    new OA\Property(property: "sku", type: "string", nullable: true),
-                                    new OA\Property(property: "title", type: "string", nullable: true),
-                                    new OA\Property(property: "price", type: "number", nullable: true),
-                                    new OA\Property(property: "stock", type: "integer", nullable: true),
-                                    new OA\Property(property: "attributes", type: "object", nullable: true),
-                                ]
-                            )
+                            items: new OA\Items()
                         )
                     ]
                 )
@@ -94,6 +99,7 @@ class ProductController extends Controller
     public function store(Request $request)
     {
         $this->authorize('create', \App\Models\Product::class);
+
         $data = $request->validate([
             'sku'=>'required|unique:products,sku',
             'name'=>'required|string',
@@ -106,8 +112,11 @@ class ProductController extends Controller
             'variants.*.stock'=>'nullable|integer',
             'variants.*.attributes'=>'nullable|array',
         ]);
+
         $data['vendor_id'] = Auth::id();
+
         $product = $this->repo->create($data);
+
         return response()->json($product, 201);
     }
 
@@ -121,26 +130,7 @@ class ProductController extends Controller
         requestBody: new OA\RequestBody(
             content: new OA\MediaType(
                 mediaType: "application/json",
-                schema: new OA\Schema(
-                    properties: [
-                        new OA\Property(property: "name", type: "string"),
-                        new OA\Property(property: "base_price", type: "number"),
-                        new OA\Property(
-                            property: "variants",
-                            type: "array",
-                            nullable: true,
-                            items: new OA\Items(
-                                properties: [
-                                    new OA\Property(property: "sku", type: "string", nullable: true),
-                                    new OA\Property(property: "title", type: "string", nullable: true),
-                                    new OA\Property(property: "price", type: "number", nullable: true),
-                                    new OA\Property(property: "stock", type: "integer", nullable: true),
-                                    new OA\Property(property: "attributes", type: "object", nullable: true),
-                                ]
-                            )
-                        )
-                    ]
-                )
+                schema: new OA\Schema()
             )
         ),
         responses: [
@@ -151,8 +141,10 @@ class ProductController extends Controller
     public function update(Request $request, $id)
     {
         $this->authorize('update', \App\Models\Product::class);
+
         $data = $request->only(['sku','name','description','base_price','variants']);
         $product = $this->repo->update($id, $data);
+
         return response()->json($product);
     }
 

@@ -1,12 +1,13 @@
 <?php
+
 namespace Tests\Feature;
 
-use Tests\TestCase;
-use Illuminate\Foundation\Testing\RefreshDatabase;
-use App\Models\User;
 use App\Models\ProductVariant;
-use App\Jobs\GenerateInvoicePdfJob;
+use App\Models\User;
+use Illuminate\Foundation\Testing\RefreshDatabase;
+use Tests\TestCase;
 use Illuminate\Support\Facades\Queue;
+use App\Jobs\GenerateInvoicePdfJob;
 
 class OrderTest extends TestCase
 {
@@ -17,7 +18,8 @@ class OrderTest extends TestCase
         $this->seed(\Database\Seeders\UserSeeder::class);
         $this->seed(\Database\Seeders\ProductSeeder::class);
 
-        $customer = User::where('email','customer@example.com')->first();
+        // use seeded emails from UserSeeder
+        $customer = User::where('email', 'customer@email.com')->first();
 
         /** @var \PHPOpenSourceSaver\JWTAuth\JWTGuard $auth */
         $auth = auth('api');
@@ -27,19 +29,18 @@ class OrderTest extends TestCase
 
         $resp = $this->withHeader('Authorization', "Bearer {$token}")
             ->postJson('/api/v1/orders', [
-                'items'=>[['variant_id'=>ProductVariant::first()->id,'quantity'=>1]],
-                'shipping'=>0,
-                'tax'=>0
+                'items' => [['variant_id' => ProductVariant::first()->id, 'quantity' => 1]],
+                'shipping' => 0,
+                'tax' => 0
             ]);
 
         $resp->assertStatus(201);
 
         $orderId = $resp->json('id');
 
-        // fake queue must be set BEFORE request
         Queue::fake();
 
-        $admin = User::where('email','admin@example.com')->first();
+        $admin = User::where('email', 'admin@email.com')->first();
 
         /** @var string $adminToken */
         $adminToken = $auth->login($admin);

@@ -8,7 +8,20 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 class Inventory extends Model
 {
     use HasFactory;
-    protected $fillable = ['variant_id', 'quantity'];
+
+    protected $fillable = [
+        'variant_id',
+        'order_id',
+        'quantity',
+        'change',
+        'reason',
+    ];
+
+    protected $casts = [
+        'quantity' => 'integer',
+        'change' => 'integer',
+    ];
+
     public function variant()
     {
         return $this->belongsTo(ProductVariant::class, 'variant_id');

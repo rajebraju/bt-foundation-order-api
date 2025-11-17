@@ -13,12 +13,12 @@ class ProductVariantFactory extends Factory
     public function definition(): array
     {
         return [
-            'product_id' => 1,
-            'sku' => $this->faker->unique()->lexify('VAR??????'),
+            'product_id' => Product::factory(),
+            'sku' => $this->faker->unique()->bothify('VAR-???-####'),
             'title' => $this->faker->word(),
-            'price' => $this->faker->randomFloat(2, 0, 50),
+            'price' => $this->faker->randomFloat(2, 1, 300),
             'stock' => $this->faker->numberBetween(0, 100),
-            'attributes' => ['size' => $this->faker->randomElement(['S', 'M', 'L'])],
+            'attributes' => ['size' => $this->faker->randomElement(['S','M','L'])],
         ];
     }
 }

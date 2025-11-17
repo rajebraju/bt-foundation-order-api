@@ -31,7 +31,7 @@ Route::prefix('v1')->group(function () {
         Route::post('orders', [OrderController::class, 'store']);
         Route::get('orders/{order}', [OrderController::class, 'show']);
         Route::post('orders/{order}/confirm', [OrderController::class, 'confirm']);
-        Route::post('orders/{order}/cancel', [OrderController::class, 'cancel']);
+        Route::patch('orders/{order}/cancel', [OrderController::class, 'cancel']);
         Route::get('orders/{order}/invoice', [OrderController::class, 'downloadInvoice']);
     });
 });
