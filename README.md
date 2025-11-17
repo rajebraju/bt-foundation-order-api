@@ -168,17 +168,31 @@ Authenticated endpoints are limited to **60 requests per minute per IP address**
 
 ## Caching Strategy
 
-This prototype does not use caching. In production:
-- Product data would be cached using Redis (`Cache::remember('product_'.$id, 3600, ...)`).
-- Low-stock alert timestamps would be cached to prevent duplicate notifications.
-- Cache would be cleared automatically via model events on product update/delete.
+| Use Case                 | Driver | Key                     | TTL   | Implementation                         |
+|--------------------------|--------|-------------------------|-------|----------------------------------------|
+| Product search results   | Redis  | `search:{q}:{page}`     | 300s  | `Cache::remember()` in `ProductRepository` |
+| Low-stock threshold list | Redis  | `low_stock_alerts`      | 3600s | Cached in `CheckLowStockJob`           |
+| PDF invoice (retrieval)  | File   | `invoices/{order_id}.pdf` | ∞    | Stored in `storage/app/invoices/`      |
+
+> **No cache is used in inventory/order transactions** to ensure ACID compliance.
 
 ## Database Sharding Strategy
 
-While not implemented, the system is designed to support horizontal scaling:
-- Orders and inventory can be sharded by `customer_id` using hash-based routing (`customer_id % N`).
-- A central database would retain global entities (users, roles, product catalog).
-- Laravel's dynamic database connections would route queries based on authenticated user context.
+### Approach: Shard by `vendor_id`
+- **Why?** Vendor data is naturally isolated; enables horizontal scale.
+- **Shard Key**: `vendor_id` (present in `products`, `orders`, `users`).
+- **Routing Logic** (to add in `app/Providers/AppServiceProvider.php`):
+  ```php
+  if (auth()->check() && auth()->user()->hasRole('vendor')) {
+      $shardId = auth()->id() % 4; // 4 shards: 0,1,2,3
+      config(['database.connections.shard' => [
+          'driver' => 'mysql',
+          'host' => "shard{$shardId}.db.internal",
+          'database' => "order_api_shard_{$shardId}",
+          ...
+      ]]);
+      DB::purge('shard');
+  }
 
 ## Postman Collection
 
