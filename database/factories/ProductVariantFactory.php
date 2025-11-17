@@ -1,4 +1,5 @@
 <?php
+
 namespace Database\Factories;
 
 use Illuminate\Database\Eloquent\Factories\Factory;
@@ -9,15 +10,15 @@ class ProductVariantFactory extends Factory
 {
     protected $model = ProductVariant::class;
 
-    public function definition()
+    public function definition(): array
     {
         return [
-            'product_id' => Product::factory(),
-            'sku' => 'VAR-'.strtoupper($this->faker->unique()->bothify('??###')),
-            'title' => $this->faker->word,
-            'price' => $this->faker->randomFloat(2, 5, 300),
+            'product_id' => 1,
+            'sku' => $this->faker->unique()->lexify('VAR??????'),
+            'title' => $this->faker->word(),
+            'price' => $this->faker->randomFloat(2, 0, 50),
             'stock' => $this->faker->numberBetween(0, 100),
-            'attributes' => ['color' => $this->faker->safeColorName()],
+            'attributes' => ['size' => $this->faker->randomElement(['S', 'M', 'L'])],
         ];
     }
 }

@@ -12,10 +12,10 @@ class AuthTest extends TestCase
 
     public function test_login_returns_tokens()
     {
-        $user = User::factory()->create(['email' => 'admin@example.com', 'password' => bcrypt('password')]);
+        $user = User::factory()->create(['email' => 'admin@email.com', 'password' => bcrypt('password')]);
         
         $response = $this->postJson('/api/v1/auth/login', [
-            'email' => 'admin@example.com',
+            'email' => 'admin@email.com',
             'password' => 'password',
         ]);
 

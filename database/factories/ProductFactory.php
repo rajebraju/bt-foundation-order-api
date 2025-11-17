@@ -13,7 +13,7 @@ class ProductFactory extends Factory
         return [
             'vendor_id' => null,
             'sku' => 'PRD-'.strtoupper($this->faker->unique()->bothify('??###')),
-            'name' => $this->faker->productName ?? $this->faker->word,
+            'name' => $this->faker->words(3, true),
             'description' => $this->faker->sentence,
             'base_price' => $this->faker->randomFloat(2, 10, 500),
             'is_active' => true,

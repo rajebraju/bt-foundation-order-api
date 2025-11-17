@@ -16,7 +16,7 @@ class OrderFlowTest extends TestCase
         $this->seed(\Database\Seeders\UserSeeder::class);
         $this->seed(\Database\Seeders\ProductSeeder::class);
 
-        $customer = User::where('email','customer@example.com')->first();
+        $customer = User::where('email','customer@email.com')->first();
         $variant = ProductVariant::first();
 
         $token = auth('api')->login($customer);
@@ -34,7 +34,7 @@ class OrderFlowTest extends TestCase
         $orderId = $response->json('id');
 
         // Confirm as admin
-        $admin = User::where('email','admin@example.com')->first();
+        $admin = User::where('email','admin@email.com')->first();
         $adminToken = auth('api')->login($admin);
         $res2 = $this->withHeader('Authorization', "Bearer {$adminToken}")
             ->postJson("/api/v1/orders/{$orderId}/confirm");

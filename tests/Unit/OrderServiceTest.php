@@ -17,7 +17,7 @@ class OrderServiceTest extends TestCase
         $this->seed(\Database\Seeders\UserSeeder::class);
         $this->seed(\Database\Seeders\ProductSeeder::class);
 
-        $customer = User::where('email','customer@example.com')->first();
+        $customer = User::where('email','customer@email.com')->first();
         $variant = ProductVariant::first();
 
         $service = $this->app->make(OrderService::class);

@@ -11,35 +11,30 @@ class UserSeeder extends Seeder
 {
     public function run()
     {
+        // Create roles first
         Role::firstOrCreate(['name' => 'admin']);
         Role::firstOrCreate(['name' => 'vendor']);
         Role::firstOrCreate(['name' => 'customer']);
 
-        $admin = User::updateOrCreate(
-            ['email' => 'admin@example.com'],
-            [
-                'name' => 'Admin User',
-                'password' => Hash::make('password'),
-            ]
-        );
+        $admin = User::create([
+            'name' => 'Admin',
+            'email' => 'admin@email.com',
+            'password' => Hash::make('password'),
+        ]);
         $admin->assignRole('admin');
 
-        $vendor = User::updateOrCreate(
-            ['email' => 'vendor@example.com'],
-            [
-                'name' => 'Vendor User',
-                'password' => Hash::make('password'),
-            ]
-        );
+        $vendor = User::create([
+            'name' => 'Vendor',
+            'email' => 'vendor@email.com',
+            'password' => Hash::make('password'),
+        ]);
         $vendor->assignRole('vendor');
 
-        $customer = User::updateOrCreate(
-            ['email' => 'customer@example.com'],
-            [
-                'name' => 'Customer User',
-                'password' => Hash::make('password'),
-            ]
-        );
+        $customer = User::create([
+            'name' => 'Customer',
+            'email' => 'customer@email.com',
+            'password' => Hash::make('password'),
+        ]);
         $customer->assignRole('customer');
     }
 }
