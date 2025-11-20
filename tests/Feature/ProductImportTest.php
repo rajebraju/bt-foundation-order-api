@@ -6,6 +6,8 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Storage;
 use Tests\TestCase;
 use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\Queue;
+
 class ProductImportTest extends TestCase
 {
     use RefreshDatabase;
@@ -14,9 +16,10 @@ class ProductImportTest extends TestCase
     {
         $this->seed();
 
+        \Illuminate\Support\Facades\Queue::fake(); 
+
         Storage::fake('local');
         $csvContent = "sku,name,price\nP001,Product A,100.00\nP002,Product B,200.00";
-        Storage::put('imports/test.csv', $csvContent);
 
         $admin = \App\Models\User::whereEmail('admin@email.com')->first();
         $response = $this->actingAs($admin, 'api')
@@ -25,9 +28,8 @@ class ProductImportTest extends TestCase
             ]);
 
         $response->assertStatus(200)
-                 ->assertJson(['message' => 'Import queued successfully']);
+            ->assertJson(['message' => 'Import queued successfully']);
 
-        // Check job was dispatched
-        \Illuminate\Support\Facades\Queue::assertPushed(\App\Jobs\ProcessProductImportJob::class);
+        Queue::assertPushed(\App\Jobs\ProcessProductImportJob::class);
     }
 }

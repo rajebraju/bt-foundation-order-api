@@ -31,25 +31,16 @@
                                 ],
                                 "properties": {
                                     "name": {
-                                        "type": "string",
-                                        "example": "John Doe"
+                                        "type": "string"
                                     },
                                     "email": {
-                                        "type": "string",
-                                        "example": "john@example.com"
+                                        "type": "string"
                                     },
                                     "password": {
-                                        "type": "string",
-                                        "example": "password123"
+                                        "type": "string"
                                     },
                                     "role": {
-                                        "type": "string",
-                                        "enum": [
-                                            "admin",
-                                            "vendor",
-                                            "customer"
-                                        ],
-                                        "example": "customer"
+                                        "type": "string"
                                     }
                                 },
                                 "type": "object"
@@ -60,9 +51,6 @@
                 "responses": {
                     "201": {
                         "description": "User registered successfully"
-                    },
-                    "422": {
-                        "description": "Validation error"
                     }
                 }
             }
@@ -85,12 +73,10 @@
                                 ],
                                 "properties": {
                                     "email": {
-                                        "type": "string",
-                                        "example": "admin@email.com"
+                                        "type": "string"
                                     },
                                     "password": {
-                                        "type": "string",
-                                        "example": "password"
+                                        "type": "string"
                                     }
                                 },
                                 "type": "object"
@@ -100,30 +86,7 @@
                 },
                 "responses": {
                     "200": {
-                        "description": "Login successful",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "properties": {
-                                        "access_token": {
-                                            "type": "string"
-                                        },
-                                        "token_type": {
-                                            "type": "string",
-                                            "example": "bearer"
-                                        },
-                                        "expires_in": {
-                                            "type": "integer",
-                                            "example": 3600
-                                        },
-                                        "refresh_token": {
-                                            "type": "string"
-                                        }
-                                    },
-                                    "type": "object"
-                                }
-                            }
-                        }
+                        "description": "Login successful"
                     },
                     "401": {
                         "description": "Invalid credentials"
@@ -158,27 +121,7 @@
                 },
                 "responses": {
                     "200": {
-                        "description": "Token refreshed",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "properties": {
-                                        "access_token": {
-                                            "type": "string"
-                                        },
-                                        "token_type": {
-                                            "type": "string",
-                                            "example": "bearer"
-                                        },
-                                        "expires_in": {
-                                            "type": "integer",
-                                            "example": 3600
-                                        }
-                                    },
-                                    "type": "object"
-                                }
-                            }
-                        }
+                        "description": "Token refreshed"
                     },
                     "401": {
                         "description": "Invalid refresh token"
@@ -196,14 +139,11 @@
                 "tags": [
                     "Auth"
                 ],
-                "summary": "Logout and invalidate token",
+                "summary": "Logout user",
                 "operationId": "a05022a34eef599e04fb0a5254375b84",
                 "responses": {
                     "200": {
                         "description": "Successfully logged out"
-                    },
-                    "401": {
-                        "description": "Unauthorized"
                     }
                 },
                 "security": [
@@ -227,136 +167,18 @@
                             "type": "integer",
                             "default": 20
                         }
+                    },
+                    {
+                        "name": "search",
+                        "in": "query",
+                        "schema": {
+                            "type": "string"
+                        }
                     }
                 ],
                 "responses": {
                     "200": {
                         "description": "Order list"
-                    },
-                    "401": {
-                        "description": "Unauthorized"
-                    }
-                },
-                "security": [
-                    {
-                        "bearerAuth": []
-                    }
-                ]
-            },
-            "post": {
-                "tags": [
-                    "Orders"
-                ],
-                "operationId": "fccc497d8bcac727afdc854cf0521698",
-                "requestBody": {
-                    "required": true,
-                    "content": {
-                        "application/json": {
-                            "schema": {
-                                "required": [
-                                    "items"
-                                ],
-                                "properties": {
-                                    "items": {
-                                        "type": "array",
-                                        "items": {
-                                            "required": [
-                                                "variant_id",
-                                                "quantity"
-                                            ],
-                                            "properties": {
-                                                "variant_id": {
-                                                    "type": "integer"
-                                                },
-                                                "quantity": {
-                                                    "type": "integer"
-                                                }
-                                            },
-                                            "type": "object"
-                                        }
-                                    },
-                                    "shipping": {
-                                        "type": "number",
-                                        "nullable": true
-                                    },
-                                    "tax": {
-                                        "type": "number",
-                                        "nullable": true
-                                    }
-                                },
-                                "type": "object"
-                            }
-                        }
-                    }
-                },
-                "responses": {
-                    "201": {
-                        "description": "Order created"
-                    },
-                    "401": {
-                        "description": "Unauthorized"
-                    }
-                },
-                "security": [
-                    {
-                        "bearerAuth": []
-                    }
-                ]
-            }
-        },
-        "/orders/{order}": {
-            "get": {
-                "tags": [
-                    "Orders"
-                ],
-                "operationId": "f4375fed7d76265a3325423e2534e437",
-                "parameters": [
-                    {
-                        "name": "order",
-                        "in": "path",
-                        "required": true,
-                        "schema": {
-                            "type": "integer"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "Order details"
-                    },
-                    "401": {
-                        "description": "Unauthorized"
-                    },
-                    "404": {
-                        "description": "Not found"
-                    }
-                },
-                "security": [
-                    {
-                        "bearerAuth": []
-                    }
-                ]
-            }
-        },
-        "/orders/{order}/confirm": {
-            "post": {
-                "tags": [
-                    "Orders"
-                ],
-                "operationId": "741390691280c0c695c078f4b4e9a228",
-                "parameters": [
-                    {
-                        "name": "order",
-                        "in": "path",
-                        "required": true,
-                        "schema": {
-                            "type": "integer"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "Order confirmed"
                     },
                     "401": {
                         "description": "Unauthorized"
@@ -389,39 +211,11 @@
                     "200": {
                         "description": "Order cancelled"
                     },
+                    "403": {
+                        "description": "Forbidden"
+                    },
                     "401": {
                         "description": "Unauthorized"
-                    }
-                },
-                "security": [
-                    {
-                        "bearerAuth": []
-                    }
-                ]
-            }
-        },
-        "/orders/{order}/invoice": {
-            "get": {
-                "tags": [
-                    "Orders"
-                ],
-                "operationId": "59617d769faf6c8b85db2b7eea981a05",
-                "parameters": [
-                    {
-                        "name": "order",
-                        "in": "path",
-                        "required": true,
-                        "schema": {
-                            "type": "integer"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "PDF invoice file"
-                    },
-                    "404": {
-                        "description": "Invoice not found"
                     }
                 },
                 "security": [

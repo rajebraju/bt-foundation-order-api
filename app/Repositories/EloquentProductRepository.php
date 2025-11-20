@@ -15,7 +15,7 @@ class EloquentProductRepository implements ProductRepositoryInterface
 
     public function find(int $id)
     {
-        return $this->model->with('variants')->findOrFail($id);
+        return $this->model->with('variants.inventory')->findOrFail($id);
     }
 
     public function create(array $data)
@@ -32,7 +32,9 @@ class EloquentProductRepository implements ProductRepositoryInterface
                     'stock' => $v['stock'] ?? 0,
                     'attributes' => $v['attributes'] ?? []
                 ]);
-                $variant->inventory()->create(['quantity' => $v['stock'] ?? 0]);
+                if (method_exists($variant, 'inventory')) {
+                    $variant->inventory()->create(['quantity' => $v['stock'] ?? 0]);
+                }
             }
             return $product->load('variants.inventory');
         });
@@ -62,7 +64,9 @@ class EloquentProductRepository implements ProductRepositoryInterface
                     }
                 } else {
                     $variant = $product->variants()->create($v);
-                    $variant->inventory()->create(['quantity' => $v['stock'] ?? 0]);
+                    if (method_exists($variant, 'inventory')) {
+                        $variant->inventory()->create(['quantity' => $v['stock'] ?? 0]);
+                    }
                 }
             }
             return $product->fresh('variants.inventory');
@@ -77,12 +81,42 @@ class EloquentProductRepository implements ProductRepositoryInterface
 
     public function paginate(int $perPage = 15)
     {
+        $user = auth()->user();
+        $isVendor = false;
+
+        if ($user) {
+            if (method_exists($user, 'hasRole')) {
+                try {
+                    if ($user->hasRole('vendor')) {
+                        $isVendor = true;
+                    }
+                } catch (\Throwable $e) {
+                    $isVendor = false;
+                }
+            }
+            if (! $isVendor) {
+                try {
+                    if ($user->roles()->where('name', 'vendor')->exists()) {
+                        $isVendor = true;
+                    }
+                } catch (\Throwable $e) {
+                    $isVendor = $isVendor;
+                }
+            }
+        }
+
+        if ($isVendor && $user) {
+            return $this->model
+                ->where('vendor_id', $user->id)
+                ->with('variants.inventory')
+                ->paginate($perPage);
+        }
+
         return $this->model->with('variants.inventory')->paginate($perPage);
     }
 
     public function search(string $query, int $perPage = 15)
     {
-        // MySQL fulltext fallback
         if (empty($query)) {
             return $this->paginate($perPage);
         }

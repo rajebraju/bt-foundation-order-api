@@ -4,7 +4,7 @@
 ---
 **Developer**: MD RAJEB CHOWDHURY 
 **Email**: rajebraju@gmail.com
-**GitHub**: https://github.com/rajebraju/bt-foundation-order-api
+**GitHub**: https://github.com/rajebraju/
 
 ## Overview
 This is an Order Management System (E-Commerce) built with Laravel 10 and MySQL. Features:
@@ -71,7 +71,11 @@ Default demo users (seeded)
 
     Customer: customer@email.com / password
 
-    Running tests:  php artisan test
+
+
+ # Running tests:  php artisan test
+ # php artisan l5-swagger:generate
+ # http://127.0.0.1:8000/api/documentation
 
 
 Notes

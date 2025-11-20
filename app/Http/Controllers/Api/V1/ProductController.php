@@ -17,7 +17,7 @@ class ProductController extends Controller
     public function __construct(ProductRepositoryInterface $repo)
     {
         $this->repo = $repo;
-        $this->middleware('auth:api')->except(['index','show','search']);
+        $this->middleware('auth:api')->except(['index', 'show', 'search']);
     }
 
     #[OA\Get(
@@ -35,18 +35,14 @@ class ProductController extends Controller
         $perPage = (int)$request->get('per_page', 15);
         $user = Auth::user();
 
-        // 🔥 FIX (VendorProductTest): Vendor sees only own products
         if ($user && $user->hasRole('vendor')) {
-            $products = Product::where('vendor_id', $user->id)
-                ->with('variants.inventory')
-                ->paginate($perPage);
-
-            return response()->json($products);
+            return response()->json(
+                Product::where('vendor_id', $user->id)
+                    ->with('variants.inventory')
+                    ->get()
+            );
         }
-
-        // others use repository
-        $res = $this->repo->paginate($perPage);
-        return response()->json($res);
+        return response()->json($this->repo->paginate($perPage));
     }
 
     #[OA\Get(
@@ -62,8 +58,7 @@ class ProductController extends Controller
     )]
     public function show($id)
     {
-        $product = $this->repo->find($id);
-        return response()->json($product);
+        return response()->json($this->repo->find($id));
     }
 
     #[OA\Post(
@@ -98,26 +93,24 @@ class ProductController extends Controller
     )]
     public function store(Request $request)
     {
-        $this->authorize('create', \App\Models\Product::class);
+        $this->authorize('create', Product::class);
 
         $data = $request->validate([
-            'sku'=>'required|unique:products,sku',
-            'name'=>'required|string',
-            'description'=>'nullable|string',
-            'base_price'=>'required|numeric',
-            'variants'=>'array|nullable',
-            'variants.*.sku'=>'nullable',
-            'variants.*.title'=>'nullable',
-            'variants.*.price'=>'nullable|numeric',
-            'variants.*.stock'=>'nullable|integer',
-            'variants.*.attributes'=>'nullable|array',
+            'sku' => 'required|unique:products,sku',
+            'name' => 'required|string',
+            'description' => 'nullable|string',
+            'base_price' => 'required|numeric',
+            'variants' => 'array|nullable',
+            'variants.*.sku' => 'nullable',
+            'variants.*.title' => 'nullable',
+            'variants.*.price' => 'nullable|numeric',
+            'variants.*.stock' => 'nullable|integer',
+            'variants.*.attributes' => 'nullable|array',
         ]);
 
         $data['vendor_id'] = Auth::id();
 
-        $product = $this->repo->create($data);
-
-        return response()->json($product, 201);
+        return response()->json($this->repo->create($data), 201);
     }
 
     #[OA\Put(
@@ -140,12 +133,11 @@ class ProductController extends Controller
     )]
     public function update(Request $request, $id)
     {
-        $this->authorize('update', \App\Models\Product::class);
+        $product = Product::findOrFail($id);
+        $this->authorize('update', $product);
 
-        $data = $request->only(['sku','name','description','base_price','variants']);
-        $product = $this->repo->update($id, $data);
-
-        return response()->json($product);
+        $data = $request->only(['sku', 'name', 'description', 'base_price', 'variants']);
+        return response()->json($this->repo->update($id, $data));
     }
 
     #[OA\Delete(
@@ -162,9 +154,11 @@ class ProductController extends Controller
     )]
     public function destroy($id)
     {
-        $this->authorize('delete', \App\Models\Product::class);
+        $product = Product::findOrFail($id);
+        $this->authorize('delete', $product);
+
         $this->repo->delete($id);
-        return response()->json(['message'=>'deleted']);
+        return response()->json(['message' => 'deleted']);
     }
 
     #[OA\Get(
@@ -180,9 +174,11 @@ class ProductController extends Controller
     )]
     public function search(Request $request)
     {
-        $q = $request->get('q','');
-        $perPage = (int)$request->get('per_page',15);
-        $res = $this->repo->search($q, $perPage);
-        return response()->json($res);
+        return response()->json(
+            $this->repo->search(
+                $request->get('q', ''),
+                (int)$request->get('per_page', 15)
+            )
+        );
     }
 }

@@ -25,17 +25,16 @@ class AuthController extends Controller
                 schema: new OA\Schema(
                     required: ["name", "email", "password"],
                     properties: [
-                        new OA\Property(property: "name", type: "string", example: "John Doe"),
-                        new OA\Property(property: "email", type: "string", example: "john@example.com"),
-                        new OA\Property(property: "password", type: "string", example: "password123"),
-                        new OA\Property(property: "role", type: "string", example: "customer", enum: ["admin", "vendor", "customer"])
+                        new OA\Property(property: "name", type: "string"),
+                        new OA\Property(property: "email", type: "string"),
+                        new OA\Property(property: "password", type: "string"),
+                        new OA\Property(property: "role", type: "string")
                     ]
                 )
             )
         ),
         responses: [
-            new OA\Response(response: "201", description: "User registered successfully"),
-            new OA\Response(response: "422", description: "Validation error")
+            new OA\Response(response: "201", description: "User registered successfully")
         ]
     )]
     public function register(Request $request)
@@ -53,8 +52,9 @@ class AuthController extends Controller
             "password" => Hash::make($request->password),
         ]);
 
-        $role = $request->role ?? 'customer';
-        $user->assignRole($role);
+        if (method_exists($user, 'assignRole')) {
+            $user->assignRole($request->role ?? 'customer');
+        }
 
         return response()->json([
             "message" => "User registered successfully",
@@ -73,28 +73,14 @@ class AuthController extends Controller
                 schema: new OA\Schema(
                     required: ["email", "password"],
                     properties: [
-                        new OA\Property(property: "email", type: "string", example: "admin@email.com"),
-                        new OA\Property(property: "password", type: "string", example: "password")
+                        new OA\Property(property: "email", type: "string"),
+                        new OA\Property(property: "password", type: "string")
                     ]
                 )
             )
         ),
         responses: [
-            new OA\Response(
-                response: "200",
-                description: "Login successful",
-                content: new OA\MediaType(
-                    mediaType: "application/json",
-                    schema: new OA\Schema(
-                        properties: [
-                            new OA\Property(property: "access_token", type: "string"),
-                            new OA\Property(property: "token_type", type: "string", example: "bearer"),
-                            new OA\Property(property: "expires_in", type: "integer", example: 3600),
-                            new OA\Property(property: "refresh_token", type: "string")
-                        ]
-                    )
-                )
-            ),
+            new OA\Response(response: "200", description: "Login successful"),
             new OA\Response(response: "401", description: "Invalid credentials")
         ]
     )]
@@ -108,23 +94,26 @@ class AuthController extends Controller
         $credentials = $request->only('email', 'password');
 
         try {
-            if (! $token = JWTAuth::attempt($credentials)) {
+            if (!$token = JWTAuth::attempt($credentials)) {
                 return response()->json(['error' => 'Invalid credentials'], 401);
             }
 
             $user = Auth::user();
 
-            // 🔥 FIX: refresh token must be generated from $token
-            $refreshToken = JWTAuth::refresh($token);
+            // Try refresh token
+            try {
+                $refresh = JWTAuth::setToken($token)->refresh();
+            } catch (\Throwable $e) {
+                $refresh = $token;
+            }
 
             return response()->json([
                 'access_token' => $token,
-                'token_type' => 'bearer',
-                'expires_in' => config('jwt.ttl') * 60,
-                'refresh_token' => $refreshToken,
-                'user' => $user
+                'token_type'   => 'bearer',
+                'expires_in'   => config('jwt.ttl') * 60,
+                'refresh_token' => $refresh,
+                'user'         => $user
             ]);
-
         } catch (JWTException $e) {
             return response()->json(['error' => 'Could not create token'], 500);
         }
@@ -148,20 +137,7 @@ class AuthController extends Controller
             )
         ),
         responses: [
-            new OA\Response(
-                response: "200",
-                description: "Token refreshed",
-                content: new OA\MediaType(
-                    mediaType: "application/json",
-                    schema: new OA\Schema(
-                        properties: [
-                            new OA\Property(property: "access_token", type: "string"),
-                            new OA\Property(property: "token_type", type: "string", example: "bearer"),
-                            new OA\Property(property: "expires_in", type: "integer", example: 3600)
-                        ]
-                    )
-                )
-            ),
+            new OA\Response(response: "200", description: "Token refreshed"),
             new OA\Response(response: "401", description: "Invalid refresh token")
         ]
     )]
@@ -172,17 +148,22 @@ class AuthController extends Controller
         ]);
 
         try {
-            // 🔥 FIX: must refresh using the body refresh_token
-            $newToken = JWTAuth::refresh($request->refresh_token);
+            $oldToken = $request->refresh_token;
+            $newToken = JWTAuth::setToken($oldToken)->refresh();
+
+            try {
+                $newRefresh = JWTAuth::setToken($newToken)->refresh();
+            } catch (\Throwable $e) {
+                $newRefresh = $newToken;
+            }
 
             return response()->json([
                 'access_token' => $newToken,
-                'token_type' => 'bearer',
-                'expires_in' => config('jwt.ttl') * 60,
-                'refresh_token' => $newToken,
+                'token_type'   => 'bearer',
+                'expires_in'   => config('jwt.ttl') * 60,
+                'refresh_token' => $newRefresh
             ]);
-
-        } catch (JWTException $e) {
+        } catch (\Throwable $e) {
             return response()->json(['error' => 'Invalid refresh token'], 401);
         }
     }
@@ -190,19 +171,23 @@ class AuthController extends Controller
     #[OA\Post(
         path: "/auth/logout",
         tags: ["Auth"],
-        summary: "Logout and invalidate token",
+        summary: "Logout user",
         security: [["bearerAuth" => []]],
         responses: [
             new OA\Response(response: "200", description: "Successfully logged out"),
-            new OA\Response(response: "401", description: "Unauthorized")
         ]
     )]
-    public function logout()
+    public function logout(Request $request)
     {
         try {
-            JWTAuth::invalidate(JWTAuth::getToken());
-        } catch (\Exception $e) {}
+            $token = JWTAuth::getToken();   
+            JWTAuth::invalidate($token);    
+        } catch (\Tymon\JWTAuth\Exceptions\JWTException $e) {
+            return response()->json(['error' => 'Failed to logout'], 500);
+        }
 
-        return response()->json(['message' => 'Successfully logged out']);
+        return response()->json(['message' => 'Successfully logged out'], 200);
     }
+
+
 }

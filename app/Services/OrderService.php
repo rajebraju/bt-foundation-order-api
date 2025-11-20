@@ -1,4 +1,5 @@
 <?php
+
 namespace App\Services;
 
 use App\Models\Order;
@@ -24,7 +25,7 @@ class OrderService
 
             $subtotal = 0.00;
             $order = Order::create([
-                'order_number' => strtoupper('ORD-'.Str::random(10)),
+                'order_number' => strtoupper('ORD-' . Str::random(10)),
                 'customer_id' => $customer->id,
                 'subtotal' => 0,
                 'shipping' => $payload['shipping'] ?? 0,
@@ -72,12 +73,16 @@ class OrderService
                 if ($variant->stock < $item->quantity) {
                     throw new Exception("Insufficient stock for variant {$variant->sku}");
                 }
-                $variant->stock -= $item->quantity;
-                $variant->save();
+
+                // atomic decrement
+                $variant->decrement('stock', $item->quantity);
 
                 if ($variant->inventory) {
                     $variant->inventory->decrement('quantity', $item->quantity);
                 }
+
+                // reload variant to get latest stock after decrement (if needed)
+                $variant->refresh();
 
                 if ($variant->stock <= config('inventory.low_stock_threshold', 5)) {
                     event(new LowStock($variant));
@@ -97,22 +102,14 @@ class OrderService
     public function cancelOrder(Order $order)
     {
         return DB::transaction(function () use ($order) {
-            if (in_array($order->status, ['shipped','delivered'])) {
+            if (in_array($order->status, ['shipped', 'delivered'])) {
                 throw new Exception("Cannot cancel shipped or delivered orders");
-            }
-
-            foreach ($order->items as $item) {
-                $variant = ProductVariant::lockForUpdate()->findOrFail($item->variant_id);
-                $variant->stock += $item->quantity;
-                $variant->save();
-                if ($variant->inventory) {
-                    $variant->inventory->increment('quantity', $item->quantity);
-                }
             }
 
             $order->status = 'cancelled';
             $order->save();
 
+            // Fire event; listener(s) should restore inventory once.
             event(new OrderCancelled($order));
 
             return $order;
